@@ -1037,6 +1037,116 @@ ASL_ABSX_handler(mos6502_t *cpu){
   cpu->pc += (uint8_t)0x3;
 
 }
+/*
+Mode           SYNTAX       HEX LEN TIM
+Zero Page     BIT $44       $24  2   3
+Absolute      BIT $4400     $2C  3   4
+*/
+void
+BIT_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t value = membus_read(cpu->bus, operand);
+  cpu->p.z = value & cpu->a ? 1 : 0;
+  cpu->p.n = (value >> 7) ? 1 : 0; // n is for the negative(sign) flag;
+  cpu->p.v = (value >> 6) & 0x01 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+BIT_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + 1);
+  uint8_t value = read8(cpu, operand);
+  cpu->p.z = value & cpu-> a ? 1: 0;
+  cpu->p.n = (value >> 7) ? 1: 0;
+  cpu->p.v = (value >> 6) & 0x01? 1: 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+BCC_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc+1);
+  uint8_t new_operand = convert(operand);
+  cpu->pc += 0x2;
+  if( (cpu->p).c == 0){
+    cpu->pc = operand >> 7 ? cpu->pc - new_operand : cpu->pc + operand;
+  }
+}
+void
+BCS_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t new_operand = convert(operand);
+  cpu->pc += 0x2;
+  if( (cpu->p).c == 1){
+    cpu->pc = operand >> 7 ? cpu->pc - new_operand : cpu->pc + operand;
+  }
+}
+void
+BEQ_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t new_operand = convert(operand);
+  cpu->pc += 0x2;
+  if( (cpu->p).z == 1){
+    cpu->pc = operand >> 7 ? cpu->pc - new_operand : cpu->pc + operand;
+  }
+}
+
+void
+BMI_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t new_operand = convert(operand);
+  cpu->pc += 0x2;
+  if( (cpu->p).n == 1){
+    cpu->pc = operand >> 7 ? cpu->pc - new_operand : cpu->pc + operand;
+  }
+}
+void
+BNE_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t new_operand = convert(operand);
+  cpu->pc += 0x2;
+  if( (cpu->p).z == 0){
+    cpu->pc = operand >> 7 ? cpu->pc - new_operand : cpu->pc + operand;
+  }
+}
+
+void
+BPL_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t new_operand = convert(operand);
+  cpu->pc += 0x2;
+  if( cpu->p.n == 0){
+    cpu->pc = operand >> 7 ? cpu->pc - new_operand : cpu->pc + operand;
+  }
+}
+
+void
+BRK_handler(mos6502_t *cpu){
+  cpu->pc+=2; // In order to throw it way
+  write8(cpu, cpu->sp--, (cpu->pc >> 8) & 0xFF);
+  write8(cpu, cpu->sp--, (cpu->pc)& 0x00FF);
+  write8(cpu, cpu->sp--, cpu->p.val);
+  uint8_t lo = read8(cpu, 0xFFFE);
+  uint8_t hi = read8(cpu, 0xFFFF);
+  cpu->p.b = 1;
+  uint8_t val = (hi << 8) | lo;
+  cpu->pc = val;
+}
+void
+BVC_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t new_operand = convert(operand);
+  cpu->pc += 0x2;
+  if( (cpu->p).v == 0){
+    cpu->pc = operand >> 7 ? cpu->pc - new_operand : cpu->pc + operand;
+  }
+}
+void
+BVS_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t new_operand = convert(operand);
+  cpu->pc += 0x2;
+  if( (cpu->p).v == 1){
+    cpu->pc = operand >> 7 ? cpu->pc - new_operand : cpu->pc + operand;
+  }
+}
 void
 CLD_handler(mos6502_t *cpu){
   printf("CLD handler\n");
