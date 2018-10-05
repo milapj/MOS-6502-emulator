@@ -1677,6 +1677,67 @@ LDA_IDR_IDX_handler(mos6502_t *cpu){
   cpu->p.n = (cpu->a >> 7) ? 1: cpu->p.n;
   cpu->pc += (uint8_t)0x2;
 }
+/*
+ modes	       syntax	   opcode length
+ accumulator   LSR A         4A    1     2
+ zeropage      LSR oper      46    2     5
+ zeropage,X    LSR oper,X    56    2     6
+ absolute      LSR oper      4E    3     6
+ absolute,X    LSR oper,X    5E    3     7
+ */
+void
+LSR_handler(mos6502_t *cpu){
+  cpu->p.c = (cpu->a &0x1) ? 1: 0 ;
+  cpu->a = cpu->a >> 1;
+  cpu->p.z = cpu->a == 0? 1: cpu->p.z ;
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x1;
+}
+
+void
+LSR_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  cpu->p.c = (value & 0x1) ? 1: 0;
+  write8(cpu, operand, (value >> 1) & 0xFF);
+  cpu->p.z = ((value >> 1) && 0xFF) == 0 ? 1: cpu->p.z ;
+  cpu->p.n = (value >> 7) & 0x01 ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x2;
+}
+
+void
+LSR_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)(operand + cpu->x));
+  cpu->p.c = (value & 0x1) ? 1 : 0;
+  write8(cpu, operand + cpu->x , (value >> 1) & 0xFF);
+  cpu->p.z = ((value >> 1) && 0xFF) == 0 ? 1: cpu->p.z;
+  cpu->p.n = (value >> 7) & 0x01 ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x2;
+}
+
+void
+LSR_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand);
+  cpu->p.c = (value & 0x1) ? 1: 0;
+  write8(cpu, operand , (value >> 1) & 0xFF);
+  cpu->p.z = ((value >> 1) && 0xFF) == 0 ? 1: cpu->p.z;
+  cpu->p.n = (value >> 7) & 0x01 ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x3;
+
+}
+void
+LSR_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand + cpu->x);
+  cpu->p.c = (value & 0x1) ? 1 : 0;
+  write8(cpu, operand + cpu->x , (value >> 1) & 0xFF);
+  cpu->p.z = ((value >> 1) && 0xFF) == 0 ? 1: cpu->p.z;
+  cpu->p.n = (value >> 7) & 0x01 ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x3;
+}
+
 /////
 void
 CLD_handler(mos6502_t *cpu){
