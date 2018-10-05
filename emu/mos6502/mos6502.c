@@ -1482,6 +1482,59 @@ EOR_IDR_IDX_handler(mos6502_t *cpu){
   cpu->pc += (uint8_t)0x2;
 }
 void
+INC_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  write8(cpu, operand, ++value);
+  cpu->p.n = value >> 7 ? 1 : 0;
+  cpu->p.z = value == 0 ? 1: 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+INC_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)(operand + cpu->x));
+  write8(cpu, operand, ++value);
+  cpu->p.n = value >> 7 ? 1 : 0;
+  cpu->p.z = value == 0 ? 1: 0;
+  cpu->pc += (uint8_t)0x2;
+}
+
+void
+INC_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand);
+  write8(cpu, operand, ++value);
+  cpu->p.n = value >> 7 ? 1 : 0;
+  cpu->p.z = value == 0 ? 1: 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+INC_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand+cpu->x);
+  write8(cpu, operand+(cpu->x), ++value);
+  cpu->p.n = value >> 7 ? 1 : 0;
+  cpu->p.z = value == 0 ? 1: 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+INX_handler(mos6502_t *cpu){
+  cpu->x++;
+  cpu->p.n = cpu->x >> 7 ? 1 : 0;
+  cpu->p.z = cpu->x == 0 ? 1 : 0;
+  cpu->pc += 1;
+}
+
+void
+INY_handler(mos6502_t *cpu){
+  cpu->y++;
+  cpu->p.n = cpu->y >> 7 ? 1 : 0;
+  cpu->p.z = cpu->y == 0 ? 1 : 0;
+  cpu->pc += 1;
+}
+/////
+void
 CLD_handler(mos6502_t *cpu){
   printf("CLD handler\n");
   cpu->p.d = 0;
