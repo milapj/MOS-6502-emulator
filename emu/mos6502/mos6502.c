@@ -2048,6 +2048,23 @@ RTS_handler(mos6502_t *cpu){
   uint16_t val = (hi << 8) | lo;
   cpu->pc = val;
 }
+void
+TSX_handler(mos6502_t *cpu){
+  cpu->x = cpu->sp;
+  cpu->p.z = cpu->x == 0 ? 1: 0;
+  cpu->p.n = (cpu->x >> 7) &0x1 ? 1:0;
+  cpu->pc += (uint8_t)0x1;
+}
+void
+SED_handler(mos6502_t *cpu){
+  cpu->p.d = 1;
+  cpu->pc += (uint8_t)0x1;
+}
+void
+SEC_handler(mos6502_t *cpu){
+  cpu->p.c = 1;
+  cpu->pc += (uint8_t)0x1;
+}
 
 /////
 void
