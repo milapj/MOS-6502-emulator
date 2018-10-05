@@ -2065,6 +2065,176 @@ SEC_handler(mos6502_t *cpu){
   cpu->p.c = 1;
   cpu->pc += (uint8_t)0x1;
 }
+/*ROL & ROR Family
+ *
+ *modes	   	  syntax      opcode bytes  cyles
+ *  accumulator   ROL A         2A    1     2
+ *  zeropage      ROL oper      26    2     5
+ *  zeropage,X    ROL oper,X    36    2     6
+ *  absolute      ROL oper      2E    3     6
+ *  absolute,X    ROL oper,X    3E    3     7
+ *
+ *
+ *
+ * */
+
+void
+ROL_handler(mos6502_t *cpu){
+  uint8_t old = cpu->a ;
+  cpu->a = cpu->a << 1;
+  cpu->a = cpu->p.c ? cpu->a | 0x01 :cpu->a & 0xFD ;
+  cpu->p.c = (old >> 7 & 0x01) ? 1 : 0 ; 
+  cpu->p.z = cpu->a == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (cpu->a >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x1;
+
+
+}
+
+void
+ROL_ZP_handler(mos6502_t *cpu){
+
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand);
+  uint8_t old = value ;
+  value = value << 1;
+  value = cpu->p.c ? value | 0x01 : value & 0xFD; 
+  write8(cpu, operand, value);
+  cpu->p.c = (old >> 7 & 0x01) ? 1 : 0 ;
+  cpu->p.z = value == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (value >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x2;
+
+
+}
+
+void
+ROL_ZPX_handler(mos6502_t *cpu){
+
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand + cpu->x);
+  uint8_t old = value;
+  value= value << 1;
+  value = cpu->p.c ? value | 0x01 : value &  0xFD;  
+  write8(cpu, operand + cpu->x, value);
+  cpu->p.c = (old >> 7 & 0x01) ? 1 : 0 ;
+  cpu->p.z = value == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (value >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x2;
+ 
+}
+
+void
+ROL_ABS_handler(mos6502_t *cpu){
+
+  uint16_t operand = read16(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand);
+  uint8_t old = value;
+  value= value << 1;
+  value = cpu->p.c ? value | 0x01 : value &  0xFD;
+  write8(cpu, operand , value);
+  cpu->p.c = (old >> 7 & 0x01) ? 1 : 0 ;
+  cpu->p.z = value == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (value >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x2;
+
+}
+
+void
+ROL_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand + (uint16_t)cpu->x);
+  uint8_t old = value;
+  value= value << 1;
+  value = cpu->p.c ? value | 0x01 : value & 0xFD;
+  write8(cpu, operand + cpu->x, value);
+  cpu->p.c = (old >> 7 & 0x01) ? 1 : 0 ;
+  cpu->p.z = value == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (value >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x2;
+
+
+}
+
+/*
+ *ROR Family
+ *
+ * */
+
+void
+ROR_handler(mos6502_t *cpu){
+
+  uint8_t old = cpu->a ;
+  cpu->a = cpu->a >> 1;
+  cpu->a = cpu->p.c ? cpu->a | 0x80 : cpu->a & 0x7F;
+  cpu->p.c = (old & 0x01) ? 1 : 0 ;
+  cpu->p.z = cpu->a == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (cpu->a >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x1;
+
+}
+void
+ROR_ZP_handler(mos6502_t *cpu){
+
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand);
+  uint8_t old = value ;
+  value = value >> 1;
+  value = cpu->p.c ? value | 0x80 : value & 0x7F;
+  write8(cpu, operand, value);
+  cpu->p.c = (old & 0x01) ? 1 : 0 ;
+  cpu->p.z = value == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (value >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x2;
+
+
+}
+void
+ROR_ZPX_handler(mos6502_t *cpu){
+
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand + cpu->x);
+  uint8_t old = value;
+  value= value >> 1;
+  value = cpu->p.c ? value | 0x80 : value & 0x7F;
+  write8(cpu, operand + cpu->x, value);
+  cpu->p.c = (old & 0x01) ? 1 : 0 ;
+  cpu->p.z = value == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (value >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x2;
+
+}
+void
+ROR_ABS_handler(mos6502_t *cpu){
+
+  uint16_t operand = read16(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand );
+  uint8_t old = value;
+  value= value >> 1;
+  value = cpu->p.c ? value | 0x80 : value & 0x7F;
+  write8(cpu, operand , value);
+  cpu->p.c = (old & 0x01) ? 1 : 0 ;
+  cpu->p.z = value == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (value >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x3;
+
+ }
+
+void
+ROR_ABSX_handler(mos6502_t *cpu){
+
+  uint16_t operand = read16(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand + (uint16_t)cpu->x);
+  uint8_t old = value;
+  value= value >> 1;
+  value = cpu->p.c ? value | 0x80 :value & 0x7F;
+  write8(cpu, operand + cpu->x, value);
+  cpu->p.c = (old & 0x01) ? 1 : 0 ;
+  cpu->p.z = value == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (value >> 7 & 0x01) ? 1 : cpu->p.n ;
+  cpu->pc += (uint8_t)0x3;
+
+}
 
 /////
 void
