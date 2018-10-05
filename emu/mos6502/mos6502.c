@@ -895,6 +895,95 @@ ADC_IDR_IDX_handler(mos6502_t *cpu){
   cpu->pc += (uint8_t)0x2;
 }
 void
+AND_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t res = (cpu->a & operand);
+  cpu->a = res;
+  cpu->p.z = !res ? 1 : cpu->p.z;
+  cpu->p.n = (res >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+AND_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  uint8_t res = (cpu->a & value);
+  cpu->a = res;
+  cpu->p.z = !res ? 1: cpu->p.z;
+  cpu->p.n = (res >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+AND_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)(operand+cpu->x));
+  uint8_t res = (value) & cpu->a;
+  cpu->a = res;
+  cpu->p.z = !res ? 1 : cpu->p.z;
+  cpu->p.n = (res >> 7) & 0x1 ? 1 : cpu->p.n; 
+  cpu->pc += (uint8_t)0x2;
+}
+void
+AND_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc+1);
+  uint8_t value = read8(cpu, operand);
+  uint8_t res = (value) & cpu->a;
+  cpu->a = res;
+  cpu->p.z = !res ? 1: cpu->p.z;
+  cpu->p.n = ( res >> 7 ) & 0x1 ? 1: cpu->p.n;;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+AND_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc+1);
+  uint8_t value = read8(cpu, operand+cpu->x);
+  uint8_t res = (value) & cpu->a;
+  cpu->a =res;
+  cpu->p.z = !res ? 1 : cpu->p.z;
+  cpu->p.n = (res >> 7) & 0x1 ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x3;
+}
+
+void
+AND_ABSY_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc+1);
+  uint8_t value = read8(cpu, operand+cpu->y);
+  uint8_t res = (value) & cpu->a;
+  cpu->a = res;
+  cpu->p.z = !res ? 1: cpu->p.z;
+  cpu->p.n = (res >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+AND_IDX_IDR_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t lo = operand + cpu->x;
+  uint8_t hi = lo + 1;	
+  uint16_t effective_addr = (hi << 8) | lo;
+  uint8_t value = read8(cpu, effective_addr);
+  uint8_t res = (value) & cpu->a;
+
+  cpu->a = res;
+  cpu->p.z = !res ? 1 : cpu->p.z;
+  cpu->p.n = (res >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc += (uint8_t)0x2;
+}
+
+void
+AND_IDR_IDX_handler(mos6502_t *cpu){
+  uint8_t first = read8(cpu, cpu->pc + 1);
+  uint8_t secnd = first + 1;
+  uint8_t lo = read8(cpu, first + cpu->y);
+  uint8_t hi = read8(cpu, secnd);
+  uint16_t effective_addr = (hi << 8) | lo;
+  uint16_t effective_value = (uint16_t)read8(cpu, effective_addr);  
+  uint8_t res = (effective_value) & cpu->a;
+  cpu->a = res;
+  cpu->p.z = !res ? 1 : cpu->p.z;
+  cpu->p.n = (res >> 7) & 0x1 ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x2;
+}
+void
 CLD_handler(mos6502_t *cpu){
   printf("CLD handler\n");
   cpu->p.d = 0;
