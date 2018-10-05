@@ -1998,6 +1998,35 @@ PLP_handler(mos6502_t *cpu){
   cpu->sp = effective_sp & 0xFF;
   cpu->pc += (uint8_t)0x1;
 }
+void
+TAX_handler(mos6502_t *cpu){
+  cpu->x = cpu->a;
+  cpu->p.z = cpu->x == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (cpu->x >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc += (uint8_t)0x1;
+}
+void
+TXA_handler(mos6502_t *cpu){
+  cpu->a = cpu->x;
+  cpu->p.z = cpu->a == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (cpu->a >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc +=(uint8_t)0x1;
+}
+void
+TAY_handler(mos6502_t *cpu){
+  cpu->y = cpu->a;
+  cpu->p.z = cpu->y == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (cpu->y >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc +=(uint8_t)0x1;
+}
+
+void
+TYA_handler(mos6502_t *cpu){
+  cpu->a = cpu->y;
+  cpu->p.z = cpu->a == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (cpu->a >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc +=(uint8_t)0x1;
+}
 
 /////
 void
