@@ -2032,6 +2032,22 @@ SEI_handler(mos6502_t *cpu){
   cpu->p.i = 1;
   cpu->pc += 0x01;
 }
+void
+RTI_handler(mos6502_t *cpu){
+  cpu->p.v = read8(cpu, cpu->sp++);
+  uint8_t lo = read8(cpu, cpu->sp++);
+  uint8_t hi = read8(cpu, cpu->sp);
+  cpu->pc = (hi << 8) | lo;
+}
+void
+RTS_handler(mos6502_t *cpu){
+  uint16_t effective_sp = 0x0100 | cpu->sp;
+  uint8_t lo = read8(cpu, ++effective_sp);
+  uint8_t hi = read8(cpu, ++effective_sp);
+  cpu->sp = effective_sp & 0xFF;
+  uint16_t val = (hi << 8) | lo;
+  cpu->pc = val;
+}
 
 /////
 void
