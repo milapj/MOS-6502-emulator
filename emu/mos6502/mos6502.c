@@ -225,11 +225,30 @@ buggy_read16 (mos6502_t * cpu, uint16_t addr)
 size_t
 mos6502_instr_repr (mos6502_t * cpu, uint16_t addr, char * buffer, size_t buflen)
 {
-	// FILL ME IN
+	char *instr_table[16][16] =
+    { {"BRK","ORA X, ind","","","","ORA zpg","ASL zpg","","PHP","ORA","ASL_ABS","","","ORA abs","ASL abs",""},
+      {"BPL","ORA ind, Y","","","","ORA zpg, X","ASL zpg, X","","CLC","ORA abs, Y","","","","ORA abs, X","ASL abs, X",""},
+      {"JSR abs","AND X, ind","","","BIT zpg","AND zpg","ROL zpg","","PLP","AND","ROL A","","BIT abs","AND abs","ROL abs",""},
+      {"BMI rel","AND ind,Y","","","","AND zpg,X","ROL zpg,X","","SEC",	"AND abs,Y","","","","AND abs,X","ROL abs,X","",},
+      {"RTI impl","EOR X,ind","","","","EOR zpg","LSR zpg","","PHA impl","EOR","LSR A","","JMP abs","EOR abs","LSR abs",""},
+      {"BVC rel","EOR ind,Y","","","","EOR zpg,X","LSR zpg,X","","CLI impl","EOR abs,Y","","","","EOR abs,X","LSR abs,X",""},
+      {"RTS impl","ADC X,ind","","","","ADC zpg","ROR zpg","","PLA impl","ADC #","ROR A","","JMP ind","ADC abs","ROR abs",""},
+      {"BVS rel","ADC ind,Y","","","","ADC zpg,X","ROR zpg,X","","SEI impl","ADC abs,Y","","","","ADC abs,X","ROR abs,X",""},
+      {"","STA X,ind","","","STY zpg","STA zpg","STX zpg","","DEY impl","","TXA impl","","STY abs","STA abs","STX abs",""},
+      {"BCC rel","STA ind,Y","","","STY zpg,X","STA zpg,X","STX zpg,Y","","TYA impl","STA abs,Y","TXS impl","","","STA abs,X","",""},     
+      {"LDY #","LDA X,ind","LDX #","","LDY zpg","LDA zpg","LDX zpg","","TAY impl","LDA #","TAX impl","","LDY abs","LDA abs","LDX abs",""},
+      {"BCS rel","LDA ind,Y","","","LDY zpg,X","LDA zpg,X","LDX zpg,Y","","CLV impl","LDA abs,Y","TSX impl","","LDY abs,X","LDA abs,X",	"LDX abs,Y",""},
+      {"CPY #","CMP X,ind","","","CPY zpg","CMP zpg","DEC zpg","","INY impl","CMP #","DEX impl","","CPY abs","CMP abs","DEC abs",""},
+      {"BNE rel","CMP ind,Y","","","","CMP zpg,X","DEC zpg,X","","CLD impl","CMP abs,Y","","","","CMP abs,X","DEC abs,X",""},
+      {"CPX #","SBC X,ind","","","CPX zpg","SBC zpg","INC zpg","","INX impl","SBC #","NOP impl","","CPX abs","SBC abs","INC abs",""},
+      {"BEQ rel","SBC ind,Y","","","","SBC zpg,X","INC zpg,X","","SED impl","SBC abs,Y","","","","SBC abs,X","INC abs,X",""}
+    };
 
-	// Delete this line when you're done
-	buffer[0] = 0;
-	return 0;
+  uint8_t opcode = read8(cpu, addr);
+  uint8_t hi = opcode >> 4;
+  uint8_t lo = opcode & 0x0F;
+  snprintf(buffer, buflen, "%s\n", instr_table[hi][lo]);
+  return 0;
 }
 
 mos6502_step_result_t
@@ -2375,45 +2394,4 @@ SBC_IDR_IDX_handler(mos6502_t *cpu){
  cpu->p.n = (result >> 7) ? 1: 0;
  cpu->p.z = (result == 0) ? 1: 0;
  cpu->pc += (uint8_t)0x02;
-}
-
-/////
-void
-CLD_handler(mos6502_t *cpu){
-  printf("CLD handler\n");
-  cpu->p.d = 0;
-  printf("%d\n", cpu->p.d);
-  cpu->pc = cpu->pc + (uint16_t)1;
-}
-
-void
-LDX_handler(mos6502_t *cpu){
-  printf("LDX handler\n");
-  printf("operand : %x\n", read16(cpu, cpu->pc));
-  cpu->pc = cpu->pc + (uint16_t)2;
-}
-
-void
- LDA_handler(mos6502_t *cpu){
-   printf("LDA handler\n");
-   // uint8_t operand = (0x00FF) && read16(cpu, cpu->pc);
-  printf("operand : %x\n", read16(cpu, cpu->pc));
-   // cpu->a = value;// How to figure out the value;
-  cpu->pc = cpu->pc + (uint16_t)2;
- }
-
-void
- TXS_handler(mos6502_t *cpu){
-   printf("TXS handler\n");
-   cpu->sp = cpu->x;
-   printf("X register : %x , A register : %x Y register : %x\n", cpu->x, cpu->a, cpu->y);
-   cpu->pc = cpu->pc + (uint8_t)1;
-}
-
-void
- STA_handler(mos6502_t *cpu){
-   printf("STA handler\n");
-   // memory = cpu->a;// How to figure out the memory;
-   printf("operand : %x\n", read16(cpu, cpu->pc));
-   cpu->pc = cpu->pc + (uint16_t)2;
-}
+}}
