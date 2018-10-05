@@ -1829,6 +1829,51 @@ STY_ABS_handler(mos6502_t *cpu){
   write8(cpu, operand, cpu->y);
   cpu->pc += (uint8_t)0x3;
 }
+void
+LDY_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  cpu->y = operand;
+  cpu->p.z = cpu->y == 0 ? 1 : 0;
+  cpu->p.n = (cpu->y >> 7 ) & 0x1 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+LDY_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand);
+  cpu->y = value;
+  cpu->p.z = cpu->y == 0 ? 1 : 0;
+  cpu->p.n = (cpu->y >> 7 ) & 0x1 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+
+void
+LDY_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, operand + (uint16_t)cpu->x);
+  cpu->y = value;
+  cpu->p.z = cpu->y == 0 ? 1 : 0;
+  cpu->p.n = (cpu->y >> 7 ) & 0x1 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+LDY_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand);
+  cpu->y = value;
+  cpu->p.z = cpu->y == 0 ? 1 : 0;
+  cpu->p.n = (cpu->y >> 7 ) & 0x1 ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+LDY_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand + cpu->x);
+  cpu->y = value;
+  cpu->p.z = cpu->y == 0 ? 1 : 0;
+  cpu->p.n = (cpu->y >> 7 ) & 0x1 ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
 /////
 void
 CLD_handler(mos6502_t *cpu){
