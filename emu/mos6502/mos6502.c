@@ -1737,7 +1737,98 @@ LSR_ABSX_handler(mos6502_t *cpu){
   cpu->p.n = (value >> 7) & 0x01 ? 1: cpu->p.n;
   cpu->pc += (uint8_t)0x3;
 }
+void
+TXS_handler(mos6502_t *cpu){
+  cpu->sp = cpu->x;
+  cpu->pc += 1;
+}
 
+void
+STA_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  write8(cpu, operand, cpu->a);
+  cpu->pc += (uint8_t)0x2;
+}
+void
+STA_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  write8(cpu, operand + cpu->x, cpu->a);
+  cpu->pc += (uint8_t)0x2;
+}
+void
+STA_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  write8(cpu, operand, cpu->a);
+  cpu->pc += (uint8_t)0x3;
+}
+void
+STA_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  write8(cpu, operand + cpu->x, cpu->a);
+  cpu->pc += (uint8_t)0x3;
+}
+void
+STA_ABSY_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  write8(cpu, operand + cpu->y, cpu->a);
+  cpu->pc += (uint8_t)0x3;
+}
+void
+STA_IDX_IDR_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t lo = operand + cpu->x;
+  uint8_t hi = lo + 1;
+  uint8_t effective_addr = (hi << 8) | lo;
+  write8(cpu, effective_addr,cpu->a);
+  cpu->pc += (uint8_t)0x2;
+}
+void
+STA_IDR_IDX_handler(mos6502_t *cpu){
+  uint8_t first = read8(cpu, cpu->pc+1);
+  uint8_t secnd = first + 1;
+  uint8_t lo = read8(cpu, first + cpu->y);
+  uint8_t hi = read8(cpu, secnd);
+  uint16_t effective_addr = (hi << 8) | lo;
+  write8(cpu, effective_addr, cpu->a);
+  cpu->pc += (uint8_t)0x2;
+}
+
+void
+STX_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  write8(cpu, (uint16_t)operand, cpu->x);
+  cpu->pc += (uint8_t)0x2;
+}
+void
+STX_ZPY_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  write8(cpu, (uint16_t)operand, cpu->x);
+  cpu->pc += (uint8_t)0x1;
+}
+void
+STX_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  write8(cpu, operand, cpu->x);
+  cpu->pc += (uint8_t)0x3;
+}
+void
+STY_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  write8(cpu, (uint16_t)operand, cpu->y);
+  cpu->pc += (uint8_t)0x2;
+}
+void
+STY_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  write8(cpu, (uint16_t)operand, cpu->y);
+  cpu->pc += (uint8_t)0x2;
+}
+void
+STY_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  write8(cpu, operand, cpu->y);
+  cpu->pc += (uint8_t)0x3;
+}
 /////
 void
 CLD_handler(mos6502_t *cpu){
