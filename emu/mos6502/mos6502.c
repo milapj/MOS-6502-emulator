@@ -1956,7 +1956,18 @@ ORA_IDR_IDX_handler(mos6502_t *cpu){
   cpu->p.z = (cpu->a == 0) ? 1: 0;
   cpu->pc += (uint8_t)0x3;
 }
+void
+JSR_ABS_handler(mos6502_t *cpu){
+  uint8_t lo = (cpu->pc + 3) & 0xFF;
+  uint8_t hi = (cpu->pc + 3) >> 8;
+  uint16_t effectivesp = cpu->sp | 0x0100; 
 
+  write8(cpu, effectivesp , hi);
+  write8(cpu, --effectivesp , lo);
+  --effectivesp;
+  cpu->sp = effectivesp & 0xFF;
+  cpu->pc = read16(cpu, cpu->pc+1);
+}
 /////
 void
 CLD_handler(mos6502_t *cpu){
