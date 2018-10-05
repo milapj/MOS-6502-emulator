@@ -1148,6 +1148,207 @@ BVS_handler(mos6502_t *cpu){
   }
 }
 void
+CLC_handler(mos6502_t *cpu){
+  cpu->p.c = 0;
+  cpu->pc += (uint8_t)0x1;
+}
+
+void
+CLI_handler(mos6502_t *cpu){
+  cpu->p.i = 0;
+  cpu->pc += (uint8_t)0x1;
+}
+void
+CLV_handler(mos6502_t *cpu){
+  cpu->p.v = 0;
+  cpu->pc += (uint8_t)0x1;
+}
+/*
+MODE           SYNTAX       HEX LEN TIM
+Immediate     CMP #$44      $C9  2   2
+Zero Page     CMP $44       $C5  2   3
+Zero Page,X   CMP $44,X     $D5  2   4
+Absolute      CMP $4400     $CD  3   4
+Absolute,X    CMP $4400,X   $DD  3   4+
+Absolute,Y    CMP $4400,Y   $D9  3   4+
+Indirect,X    CMP ($44,X)   $C1  2   6
+Indirect,Y    CMP ($44),Y   $D1  2   5+
+*/
+/*
+If the value in the accumulator is equal or greater than the compared value,
+the Carry will be set.
+?
+The equal (Z) and sign (S) flags will be set based on equality or lack thereof and the sign (i.e. A>=$80) of the accumulator.
+ */
+void
+CMP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  if( cpu->a >= operand){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->a - operand) >> 7 ? 1 : 0 ;
+  cpu->p.z = cpu->a == operand ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+CMP_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  if ( cpu->a >= value) {
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->a - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->a == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+CMP_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)(operand + cpu->x));
+  if ( cpu->a >= value){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->a - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->a == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+CMP_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand);
+  if ( cpu-> a >= value){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->a - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->a == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+CMP_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand+(uint16_t)cpu->x);
+  if ( cpu->a >= value){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->a - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->a == value ? 1 : 0;
+  cpu->pc +=(uint8_t)0x3;
+}
+void
+CMP_ABSY_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand+(uint16_t)cpu->y);
+  if(cpu->a >= value){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->a - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->a == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+CMP_IDX_IDR_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t lo = operand + cpu->x;
+  uint8_t hi = lo + 1;
+  uint16_t effective_addr = (hi << 8) | lo;
+  uint8_t value = read8(cpu, effective_addr);
+  if( cpu->a >= value){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->a - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->a == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+
+}
+void
+CMP_IDR_IDX_handler(mos6502_t *cpu){
+  uint8_t first = read8(cpu, cpu->pc + 1);
+  uint8_t secnd = first + 1;
+  uint8_t lo = read8(cpu, first + cpu->y);
+  uint8_t hi = read8(cpu, secnd);
+  uint16_t effective_addr = (hi << 8) | lo;
+  uint8_t effective_value = read8(cpu, effective_addr);
+  if( cpu->a >= effective_value){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->a - effective_value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->a == effective_value ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+
+/*
+MODE           SYNTAX       HEX LEN TIM
+Immediate     CPX #$44      $E0  2   2
+Zero Page     CPX $44       $E4  2   3
+Absolute      CPX $4400     $EC  3   4
+*/
+void
+CPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  if( cpu->x >= operand){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->x - operand) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->x == operand ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+CPX_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  if( cpu->x >= value){
+    cpu->p.c =1;
+  }
+  cpu->p.n = (cpu->x - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->x == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+CPX_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand);
+  if ( cpu->x >= value){
+    cpu->p.c=1;
+  }
+  cpu->p.n = (cpu->x - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->x == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
+
+void
+CPY_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, (cpu->pc)+(uint8_t)1);
+  if( cpu->y >= operand){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->y - operand ) >> 7 ? 1: 0;
+  cpu->p.z = cpu->y == operand ? 1 : 0;
+
+  cpu->pc += (uint8_t)0x2;
+}
+void
+CPY_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  if( cpu->y >= value){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->y - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->y == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+CPY_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  if(cpu->y >= value){
+    cpu->p.c = 1;
+  }
+  cpu->p.n = (cpu->y - value) >> 7 ? 1 : 0;
+  cpu->p.z = cpu->y == value ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
 CLD_handler(mos6502_t *cpu){
   printf("CLD handler\n");
   cpu->p.d = 0;
