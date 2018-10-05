@@ -1162,6 +1162,11 @@ void
 CLV_handler(mos6502_t *cpu){
   cpu->p.v = 0;
   cpu->pc += (uint8_t)0x1;
+} 
+void
+CLD_handler(mos6502_t *cpu){ 
+  cpu->p.d = 0;
+  cpu->pc = cpu->pc + (uint8_t)0x1;
 }
 /*
 MODE           SYNTAX       HEX LEN TIM
