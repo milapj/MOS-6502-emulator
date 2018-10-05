@@ -2394,4 +2394,4 @@ SBC_IDR_IDX_handler(mos6502_t *cpu){
  cpu->p.n = (result >> 7) ? 1: 0;
  cpu->p.z = (result == 0) ? 1: 0;
  cpu->pc += (uint8_t)0x02;
-}}
+}
