@@ -1651,6 +1651,32 @@ LDA_ABSY_handler(mos6502_t *cpu){
   cpu->p.n = (cpu->a >> 7) ? 1: cpu->p.n;
   cpu->pc += (uint8_t)0x3;
 }
+void
+LDA_IDX_IDR_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t lo = operand + cpu->x;
+  uint8_t hi = lo + 1;
+  uint16_t effective_addr = (hi << 8) | lo;
+  uint8_t value = read8(cpu, effective_addr);
+  cpu->a = value;
+  cpu->p.z = cpu->a == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (cpu->a >> 7) ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x2;
+
+}
+void
+LDA_IDR_IDX_handler(mos6502_t *cpu){
+  uint8_t first = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t secnd = first + 1;
+  uint8_t lo = read8(cpu, first + cpu->y);
+  uint8_t hi = read8(cpu, secnd);
+  uint16_t effective_addr = hi << 8 | (lo + cpu->y);
+  uint8_t effective_value = read8(cpu, effective_addr);
+  cpu->a = effective_value;
+  cpu->p.z = cpu->a == 0 ? 1: cpu->p.z;
+  cpu->p.n = (cpu->a >> 7) ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x2;
+}
 /////
 void
 CLD_handler(mos6502_t *cpu){
