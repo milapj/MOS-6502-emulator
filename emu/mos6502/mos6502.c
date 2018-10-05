@@ -2235,6 +2235,147 @@ ROR_ABSX_handler(mos6502_t *cpu){
   cpu->pc += (uint8_t)0x3;
 
 }
+void
+SBC_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint16_t result = ((cpu->a - operand) - 1);
+  
+  cpu->a = cpu->p.c ? cpu->a - operand : (cpu->a - operand) - 1;
+  //Overflow
+  if( result > 0xFF) {
+    cpu->p.c = 1;
+    cpu->p.v = 1;
+    cpu->a = (cpu->a - operand) - 0xFF;
+  }
+  cpu->p.n = (result >> 7) & 0x1 ? 1: 0;
+  cpu->p.z = result == 0? 1:0;
+  cpu->pc += 2;
+}
+void
+SBC_ZP_handler(mos6502_t *cpu) {
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  uint16_t result = ((cpu->a) - value);
+  cpu->a = cpu->p.c ? cpu->a -value : (cpu->a - value) - 1;
+  //Overflow
+  if( result > 0xFF) {
+    cpu->p.c = 1;
+    cpu->p.v = 1;
+    cpu->a = (cpu->a - value) - 0xFF;
+  }
+  cpu->p.n = (result >> 7) & 0x1 ? 1: 0;
+  cpu->p.z = result == 0? 1:0;
+  cpu->pc += 2;
+}
+
+void
+SBC_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + 1);
+  uint8_t value = read8(cpu, (uint16_t)(operand+cpu->x));
+  uint16_t result = cpu->a-value;
+  cpu->a = cpu->p.c ? cpu->a - value : (cpu->a - value) - 1;
+  //Overflow
+  if( result > 0xFF) {
+    cpu->p.c = 1;
+    cpu->p.v = 1;
+    cpu->a = (cpu->a - value) - 0xFF;
+  }
+  cpu->p.n = (result >> 7) & 0x1 ? 1: 0;
+  cpu->p.z = result == 0? 1:0;
+  cpu->pc += (uint8_t)0x2;
+}
+
+void
+SBC_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand);
+  uint16_t result = cpu->a - value;
+  cpu->a = cpu->p.c ? cpu->a - value : (cpu->a - value) - 1;
+  //Overflow
+  if( result > 0xFF) {
+    cpu->p.c = 1;
+    cpu->p.v = 1;
+    cpu->a = (cpu->a - value) - 0xFF;
+  }
+  cpu->p.n = (result >> 7) & 0x1 ? 1: 0;
+  cpu->p.z = result == 0? 1:0;
+  cpu->pc += (uint8_t)0x3;
+}
+
+void
+SBC_ABSX_handler(mos6502_t *cpu){
+ uint16_t operand = read16(cpu, cpu->pc+(uint16_t)1);
+ uint8_t value = read8(cpu, operand+cpu->x);
+ uint16_t result = cpu->p.c ? cpu->a - value : cpu->a - value - 1;
+ cpu->a = cpu->p.c ? cpu->a - value : (cpu->a - value) - 1;
+ //Overflow
+ if( result > 0xFF) {
+   cpu->p.c = 1;
+   cpu->p.v = 1;
+   cpu->a = (cpu->a - value) - 0xFF;
+ }
+ cpu->p.n = (result >> 7) & 0x1 ? 1 : 0;
+ cpu->p.z = result == 0 ? 1 : 0;
+ cpu->pc += (uint8_t)0x3; 
+}
+
+void
+SBC_ABSY_handler(mos6502_t *cpu){ 
+ uint16_t operand = read16(cpu, cpu->pc+(uint16_t)1);
+ uint8_t value = read8(cpu, operand+cpu->y);
+ uint16_t result = cpu->p.c ? cpu->a - value : cpu->a - value - 1;
+ cpu->a = cpu->p.c ? cpu->a - value : (cpu->a - value) - 1;
+ //Overflow
+ if( result > 0xFF){
+   cpu->p.c = 1;
+   cpu->p.v = 1;
+   cpu->a = (cpu->a - value) - 0xFF;
+ }
+ cpu->p.n = (result >> 7) & 0x1 ? 1 : 0;
+ cpu->p.z = result == 0 ? 1 : 0;
+ cpu->pc += (uint8_t) 0x3;
+}
+
+void
+SBC_IDX_IDR_handler(mos6502_t *cpu){
+ uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+ uint8_t lo = operand + cpu->x;
+ uint8_t hi = lo + 1;
+ uint16_t effective_addr = (hi << 8) | lo;
+ uint8_t value = read8(cpu, effective_addr);
+ uint16_t result = cpu->p.c ? cpu->a - value : cpu->a - value - 1;
+ cpu->a = cpu->p.c ? cpu->a - value : (cpu->a - value) - 1;
+ //Overflow
+ if( result > 0xFF) {
+   cpu->p.c = 1;
+   cpu->p.v = 1;
+   cpu->a = (cpu->a - value) - 0xFF;
+ }
+ cpu->p.n = (result >> 7) ? 1: 0;
+ cpu->p.z = (result == 0) ? 1: 0;
+ cpu->pc += (uint8_t)0x02;
+}
+
+void
+SBC_IDR_IDX_handler(mos6502_t *cpu){
+  uint8_t first = read8(cpu, cpu->pc + 1);
+  uint8_t secnd = first + 1;
+  uint8_t lo = read8(cpu, first + cpu->y);
+  uint8_t hi = read8(cpu, secnd);
+  uint16_t effective_addr = (hi << 8 ) | lo;
+  uint8_t effective_value = read8(cpu, effective_addr);
+  uint16_t result = cpu->p.c ? cpu->a - effective_value :cpu->a -effective_value - 1;
+ cpu->a = cpu->p.c ? cpu->a - effective_value : (cpu->a - effective_value) - 1;
+ //Overflow
+ if( result > 0xFF) {
+   cpu->p.c = 1;
+   cpu->p.v = 1;
+   cpu->a = (cpu->a - effective_value) - 0xFF;
+ }
+ cpu->p.n = (result >> 7) ? 1: 0;
+ cpu->p.z = (result == 0) ? 1: 0;
+ cpu->pc += (uint8_t)0x02;
+}
 
 /////
 void
