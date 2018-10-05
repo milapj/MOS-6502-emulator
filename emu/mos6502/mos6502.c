@@ -1533,6 +1533,20 @@ INY_handler(mos6502_t *cpu){
   cpu->p.z = cpu->y == 0 ? 1 : 0;
   cpu->pc += 1;
 }
+void
+JMP_ABS_handler(mos6502_t *cpu){
+  uint8_t lo = read8(cpu, cpu->pc+1);
+  uint8_t hi = read8(cpu, cpu->pc+2);
+  cpu->pc = hi << 8 | lo;
+}
+void
+JMP_IDR_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc+1);
+  uint8_t low_value = read8(cpu, operand);
+  uint8_t high_value = read8(cpu, operand + 1);
+  uint16_t value = (high_value << 8) | low_value;
+  cpu->pc = value;
+}
 /////
 void
 CLD_handler(mos6502_t *cpu){
