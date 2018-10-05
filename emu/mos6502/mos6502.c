@@ -1874,6 +1874,10 @@ LDY_ABSX_handler(mos6502_t *cpu){
   cpu->p.n = (cpu->y >> 7 ) & 0x1 ? 1 : 0;
   cpu->pc += (uint8_t)0x3;
 }
+void
+NOP_handler(mos6502_t *cpu){
+  cpu->pc += (uint8_t)0x1;
+}
 /////
 void
 CLD_handler(mos6502_t *cpu){
