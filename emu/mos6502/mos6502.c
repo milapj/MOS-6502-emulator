@@ -2027,6 +2027,11 @@ TYA_handler(mos6502_t *cpu){
   cpu->p.n = (cpu->a >> 7) & 0x1 ? 1 : cpu->p.n;
   cpu->pc +=(uint8_t)0x1;
 }
+void
+SEI_handler(mos6502_t *cpu){
+  cpu->p.i = 1;
+  cpu->pc += 0x01;
+}
 
 /////
 void
