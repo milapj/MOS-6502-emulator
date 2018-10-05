@@ -1968,6 +1968,37 @@ JSR_ABS_handler(mos6502_t *cpu){
   cpu->sp = effectivesp & 0xFF;
   cpu->pc = read16(cpu, cpu->pc+1);
 }
+void
+PHA_handler(mos6502_t *cpu){
+  uint16_t effective_sp = 0x0100 | cpu->sp;
+  write8(cpu, effective_sp--, cpu->a);
+  cpu->sp = effective_sp & 0xFF;
+  cpu->pc += (uint8_t)0x1;
+}
+void
+PLA_handler(mos6502_t *cpu){
+  uint16_t effective_sp = 0x0100 | cpu->sp;
+  cpu->a = read8(cpu, ++effective_sp);
+  cpu->sp = effective_sp & 0xFF;
+  cpu->p.z = cpu->a == 0 ? 1 : cpu->p.z;
+  cpu->p.n = (cpu->a >> 7) & 0x1 ? 1 : cpu->p.n;
+  cpu->pc += (uint8_t)0x1;
+}
+void
+PHP_handler(mos6502_t *cpu){
+  uint16_t effective_sp = 0x100 | cpu->sp;
+  write8(cpu, effective_sp--, cpu->p.val);
+  cpu->sp = effective_sp & 0xFF;
+  cpu->pc += (uint8_t)0x1;
+}
+void
+PLP_handler(mos6502_t *cpu){
+  uint16_t effective_sp = 0x100 | cpu->sp;
+  cpu->p.val = read8(cpu,++effective_sp);
+  cpu->sp = effective_sp & 0xFF;
+  cpu->pc += (uint8_t)0x1;
+}
+
 /////
 void
 CLD_handler(mos6502_t *cpu){
