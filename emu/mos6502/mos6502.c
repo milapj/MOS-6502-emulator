@@ -725,7 +725,175 @@ mos6502_step (mos6502_t * cpu)
 	mos6502_advance_clk(cpu, instr_cycles[opcode]);
 	return MOS6502_STEP_RESULT_SUCCESS;
 }
-
+/*
+MODE           SYNTAX       HEX LEN TIM
+Immediate     ADC #$44      $69  2   2
+Zero Page     ADC $44       $65  2   3
+Zero Page,X   ADC $44,X     $75  2   4
+Absolute      ADC $4400     $6D  3   4
+Absolute,X    ADC $4400,X   $7D  3   4+
+Absolute,Y    ADC $4400,Y   $79  3   4+
+Indirect,X    ADC ($44,X)   $61  2   6
+Indirect,Y    ADC ($44),Y   $71  2   5+
+*/
+void
+ADC_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc+(uint8_t)1);
+  uint16_t value = cpu->a + operand;
+  value = cpu->p.c ? value + ( (cpu->p.c? 1 : 0) | 0x00) : value; 	
+  /* Overflow */
+  if( value > 0xFF){
+    cpu->p.c = (value >> 8) & 0x01 ? 1: 0 ;  
+    cpu->p.v = 1;
+    cpu->a = value & 0xFF;
+  } else{
+    cpu->p.c = 0 ;
+    cpu->a = value & 0xFF;
+  }
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1 : 0;
+  cpu->p.z = cpu->a == 0 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+ADC_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  uint16_t result = cpu->a + value;
+  result = cpu->p.c ? result + ( (cpu->p.c? 1 : 0) | 0x00 ) : result;
+  /* Overflow */
+  if( result > 0xFF){
+    cpu->p.c = (result >> 8) & 0x01 ? 1: 0 ;
+    cpu->p.v = 1;
+    cpu->a = result & 0xFF;
+  } else{
+    cpu->p.c = 0 ;
+    cpu->a = result & 0xFF;
+  }
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1 : 0;
+  cpu->p.z = cpu->a == 0 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+ADC_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)(operand+cpu->x));
+  uint16_t result = cpu->a+value;
+  result = cpu->p.c ? result + ( (cpu->p.c? 1 : 0) | 0x00 ) : result;
+  /* Overflow */
+  if( result > 0xFF){
+    cpu->p.c = (result >> 8) & 0x01 ? 1: 0 ;
+    cpu->p.v = 1;
+    cpu->a = result & 0xFF;
+  } else{
+    cpu->p.c = 0 ;
+    cpu->a = result & 0xFF;
+  }
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1 : 0;
+  cpu->p.z = cpu->a == 0 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2; 
+}
+void
+ADC_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand);
+  uint16_t result = cpu->a +value;
+  result = cpu->p.c ? result + ( (cpu->p.c? 1 : 0) | 0x00 ) : result;
+  /* Overflow */
+  if( result > 0xFF){
+    cpu->p.c = (result >> 8) & 0x01 ? 1: 0 ;
+    cpu->p.v = 1;
+    cpu->a = result & 0xFF;
+  } else{
+    cpu->p.c = 0 ;
+    cpu->a = result & 0xFF;
+  }
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1 : 0;
+  cpu->p.z = cpu->a == 0 ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+ADC_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand+cpu->x);
+  uint16_t result = cpu->a + value;
+ result = cpu->p.c ? result + ( (cpu->p.c? 1 : 0) | 0x00 ) : result;
+  /* Overflow */
+  if( result > 0xFF){
+    cpu->p.c = (result >> 8) & 0x01 ? 1: 0 ;
+    cpu->p.v = 1;
+    cpu->a = result & 0xFF;
+  } else{
+    cpu->p.c = 0 ;
+    cpu->a = result & 0xFF;
+  }
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1 : 0;
+  cpu->p.z = cpu->a == 0 ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+ADC_ABSY_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand+cpu->y);
+  uint16_t result = cpu->a + value;
+  result = cpu->p.c ? result + ( (cpu->p.c? 1 : 0) | 0x00 ) : result;
+  /* Overflow */
+  if( result > 0xFF){
+    cpu->p.c = (result >> 8) & 0x01 ? 1: 0 ;
+    cpu->p.v = 1;
+    cpu->a = result & 0xFF;
+  } else{
+    cpu->p.c = 0 ;
+    cpu->a = result & 0xFF;
+  }
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1 : 0;
+  cpu->p.z = cpu->a == 0 ? 1 : 0;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+ADC_IDX_IDR_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t lo = operand + cpu->x;
+  uint8_t hi = lo + 1;	
+  uint16_t effective_addr = (hi << 8) | lo;
+  uint8_t value = read8(cpu, effective_addr);
+  uint16_t result = cpu->a + value;
+  result = cpu->p.c ? result + ( (cpu->p.c? 1 : 0) | 0x00 ) : result;
+  /* Overflow */
+  if( result > 0xFF){
+    cpu->p.c = (result >> 8) & 0x01 ? 1: 0 ;
+    cpu->p.v = 1;
+    cpu->a = result & 0xFF;
+  } else{
+    cpu->p.c = 0 ;
+    cpu->a = result & 0xFF;
+  }
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1 : 0;
+  cpu->p.z = cpu->a == 0 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+ADC_IDR_IDX_handler(mos6502_t *cpu){
+  uint8_t first = read8(cpu, cpu->pc + (uint8_t)1);
+  uint8_t second = first + 1;
+  uint8_t lo = read8(cpu,first + cpu->y);
+  uint8_t hi = read8(cpu, second);
+  uint16_t effective_addr = (hi << 8) | lo;
+  uint8_t value = read8(cpu, effective_addr);
+  uint16_t result = cpu->a + value;
+  result = cpu->p.c ? result + ( (cpu->p.c? 1 : 0) | 0x00 ) : result;
+  /* Overflow */
+  if( result > 0xFF){
+    cpu->p.c = (result >> 8) & 0x01 ? 1: 0 ;
+    cpu->p.v = 1;
+    cpu->a = result & 0xFF;
+  } else{
+    cpu->p.c = 0 ;
+    cpu->a = result & 0xFF;
+  }
+  cpu->p.n = (cpu->a >> 7) & 0x01 ? 1 : 0;
+  cpu->p.z = cpu->a == 0 ? 1 : 0;
+  cpu->pc += (uint8_t)0x2;
+}
 void
 CLD_handler(mos6502_t *cpu){
   printf("CLD handler\n");
