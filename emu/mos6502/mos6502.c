@@ -983,6 +983,60 @@ AND_IDR_IDX_handler(mos6502_t *cpu){
   cpu->p.n = (res >> 7) & 0x1 ? 1: cpu->p.n;
   cpu->pc += (uint8_t)0x2;
 }
+/*
+MODE           SYNTAX       HEX LEN TIM
+Accumulator   ASL A         $0A  1   2
+Zero Page     ASL $44       $06  2   5
+Zero Page,X   ASL $44,X     $16  2   6
+Absolute      ASL $4400     $0E  3   6
+Absolute,X    ASL $4400,X   $1E  3   7
+*/
+void
+ASL_handler(mos6502_t *cpu){
+  cpu->p.c = (cpu->a >> 7);
+  cpu->a = (cpu->a << 1);
+  cpu->p.z = cpu->a == 0 ? 1: cpu->p.z;
+  cpu->p.n = (cpu->a >> 7 ) & 0x1 ? 1: cpu->p.n;
+  cpu->pc += (uint8_t)0x1;
+}
+void
+ASL_ZP_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)operand);
+  cpu->p.c = value >> 7;
+  write8(cpu, operand, (value << 1) & 0x00FF);
+  cpu->p.z = !((value << 1) & 0x00FF) ? 1: cpu->p.z;
+  //  cpu->p.n =
+  cpu->pc +=(uint8_t)0x2;
+}
+void
+ASL_ZPX_handler(mos6502_t *cpu){
+  uint8_t operand = read8(cpu, cpu->pc+(uint8_t)1);
+  uint8_t value = read8(cpu, (uint16_t)(operand + cpu->x));
+  cpu->p.c = value >> 7;
+  write8(cpu, operand + cpu->x, (value << 1) & 0x00FF);
+  cpu->p.z = !((value << 1) & 0x00FF) ? 1 : cpu->p.z;
+  cpu->pc += (uint8_t)0x2;
+}
+void
+ASL_ABS_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand);
+  cpu->p.c = value >> 7;
+  write8(cpu, operand, (value << 1) & 0x00FF);
+  cpu->p.z = !((value<<1) & 0x00FF) ? 1: cpu->p.z;
+  cpu->pc += (uint8_t)0x3;
+}
+void
+ASL_ABSX_handler(mos6502_t *cpu){
+  uint16_t operand = read16(cpu, cpu->pc + (uint16_t)1);
+  uint8_t value = read8(cpu, operand + cpu->x);
+  cpu->p.c = value >> 7;
+  write8(cpu, operand+(uint16_t)cpu->x, (value << 1) & 0x00FF);
+  cpu->p.z = !((value <<1)&0x00FF)? 1: cpu->p.z;
+  cpu->pc += (uint8_t)0x3;
+
+}
 void
 CLD_handler(mos6502_t *cpu){
   printf("CLD handler\n");
