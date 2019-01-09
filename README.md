@@ -1,4 +1,4 @@
-## Hawk-nest is MOS 6502 cpu emulator built in C. emu/mos6502/mos6502.c contains all the Instruction Set translation handlers for MOS6502, uses decode and dispatch architecture.
+## A MOS 6502 cpu emulator built in C. emu/mos6502/mos6502.c contains all the Instruction Set translation handlers for MOS6502, uses decode and dispatch architecture.
 
 ### Build ###
 `make`
